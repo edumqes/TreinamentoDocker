@@ -1,0 +1,72 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:5.7
+    container_name: mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: pass
+      MYSQL_DATABASE: wordpress
+    volumes:
+      - vol-db:/var/lib/mysql
+      - /etc/localtime:/etc/localtime:ro
+    networks:
+      - net-backend
+
+  phpmyadmin:
+    image: phpmyadmin
+    container_name: phpmyadmin
+    restart: always
+    ports:
+      - "8080:80"
+    environment:
+      PMA_HOST: mysql
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+    networks:
+      - net-backend
+
+  wordpress:
+    image: wordpress
+    container_name: wordpress
+    restart: always
+    ports:
+      - "8081:80"
+    environment:
+      WORDPRESS_DB_HOST: mysql
+      WORDPRESS_DB_NAME: wordpress
+      WORDPRESS_DB_USER: root
+      WORDPRESS_DB_PASSWORD: pass
+    volumes:
+      - vol-html:/var/www/html
+      - ./uploads.ini:/usr/local/etc/php/conf.d/uploads.ini
+      - /etc/localtime:/etc/localtime:ro
+    networks:
+      - net-backend
+    depends_on:
+      - mysql
+
+  owncloud:
+    image: owncloud
+    container_name: owncloud
+    restart: always
+    ports:
+      - "8082:80"
+    volumes:
+      - vol-apps:/var/www/html/apps
+      - vol-data:/var/www/html/data
+      - /etc/localtime:/etc/localtime:ro
+    networks:
+      - net-backend
+
+volumes:
+  vol-db:
+  vol-html:
+  vol-apps:
+  vol-data:
+
+networks:
+  net-backend:
+    driver: bridge
+
